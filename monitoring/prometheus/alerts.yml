@@ -1,0 +1,118 @@
+﻿# =============================================================================
+# Алерты для мониторинга инфраструктуры 1С
+# Версия: 3.1 (Русский язык + Labels для всех алертов)
+# =============================================================================
+
+groups:
+  # ---------------------------------------------------------------------------
+  # Группа 1: Критические сервисы (Prometheus self-monitoring)
+  # ---------------------------------------------------------------------------
+  - name: infrastructure-critical
+    rules:
+      - alert: PostgreSQLDown
+        expr: pg_up == 0
+        for: 1m
+        labels:
+          severity: critical
+          threshold: "1"
+          unit: "(должен быть 1)"
+        annotations:
+          summary: "🔴 PostgreSQL недоступен"
+          description: "PostgreSQL exporter не может подключиться к базе данных"
+
+      - alert: PrometheusDown
+        expr: up{job="prometheus"} == 0
+        for: 1m
+        labels:
+          severity: critical
+          threshold: "1"
+          unit: "(должен быть 1)"
+        annotations:
+          summary: "🔴 Prometheus недоступен"
+          description: "Сервер Prometheus не отвечает"
+
+      - alert: cAdvisorDown
+        expr: up{job="cadvisor"} == 0
+        for: 1m
+        labels:
+          severity: critical
+          threshold: "1"
+          unit: "(должен быть 1)"
+        annotations:
+          summary: "🔴 cAdvisor недоступен"
+          description: "cAdvisor не отвечает"
+
+  # ---------------------------------------------------------------------------
+  # Группа 2: HTTP-проверки (Blackbox Exporter)
+  # ---------------------------------------------------------------------------
+  - name: blackbox-http
+    rules:
+      - alert: GrafanaDown
+        expr: probe_success{instance="http://grafana:3000/api/health", job="blackbox-http"} == 0
+        for: 2m
+        labels:
+          severity: critical
+          threshold: "1"
+          unit: "(должен быть 1)"
+        annotations:
+          summary: "🔴 Grafana недоступна"
+          description: "Health endpoint Grafana не отвечает"
+
+      - alert: PgAdminDown
+        expr: probe_success{instance="http://pgadmin4:80", job="blackbox-http"} == 0
+        for: 2m
+        labels:
+          severity: critical
+          threshold: "1"
+          unit: "(должен быть 1)"
+        annotations:
+          summary: "🔴 pgAdmin недоступен"
+          description: "Веб-интерфейс pgAdmin не отвечает"
+
+      - alert: PortainerDown
+        expr: probe_success{instance="http://portainer:9000", job="blackbox-http"} == 0
+        for: 2m
+        labels:
+          severity: critical
+          threshold: "1"
+          unit: "(должен быть 1)"
+        annotations:
+          summary: "🔴 Portainer недоступен"
+          description: "Веб-интерфейс Portainer не отвечает"
+
+      - alert: VoceChatDown
+        expr: probe_success{instance="http://vocechat-notifications:3000", job="blackbox-http"} == 0
+        for: 2m
+        labels:
+          severity: critical
+          threshold: "1"
+          unit: "(должен быть 1)"
+        annotations:
+          summary: "🔴 VoceChat недоступен"
+          description: "Сервис уведомлений VoceChat не отвечает"
+  # ---------------------------------------------------------------------------
+  # Группа 3: Ресурсы контейнеров (cAdvisor)
+  # ---------------------------------------------------------------------------
+  - name: containers-resources
+    rules:
+      - alert: ContainerHighCPU
+        expr: rate(container_cpu_usage_seconds_total{name!=""}[5m]) * 100 > 80
+        for: 5m
+        labels:
+          severity: warning
+          threshold: "80"
+          unit: "%"
+        annotations:
+          summary: "⚠️ Высокая загрузка CPU"
+          description: "Контейнер {{ $labels.name }} использует более 80% CPU (текущее: {{ $value | printf \"%.2f\" }}%)"
+
+      - alert: ContainerHighMemory
+        expr: container_memory_usage_bytes{name!=""} > 5368709120
+        for: 5m
+        labels:
+          severity: warning
+          threshold: "5368709120"
+          unit: "байт (>5 ГБ)"
+        annotations:
+          summary: "⚠️ Высокое потребление памяти"
+          description: "Контейнер {{ $labels.name }} использует более 5 ГБ ОЗУ (текущее: {{ $value | humanize }})"

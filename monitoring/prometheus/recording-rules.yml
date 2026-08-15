@@ -1,0 +1,25 @@
+# =============================================================================
+# Prometheus Recording Rules для 1C-Home Infrastructure
+# =============================================================================
+
+groups:
+  - name: container_metrics
+    interval: 30s
+    rules:
+      # CPU Usage в процентах (за последние 5 минут)
+      - record: instance:container_cpu_usage:rate5m
+        expr: rate(container_cpu_usage_seconds_total{name!=""}[5m]) * 100
+        labels:
+          unit: "percent"
+
+      # CPU Usage по контейнерам (агрегация)
+      - record: job:container_cpu_usage:sum_rate5m
+        expr: sum(rate(container_cpu_usage_seconds_total{name!=""}[5m])) by (name) * 100
+        labels:
+          unit: "percent"
+
+      # Memory Usage в мегабайтах
+      - record: instance:container_memory_usage:mb
+        expr: container_memory_usage_bytes{name!=""} / 1024 / 1024
+        labels:
+          unit: "megabytes"
