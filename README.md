@@ -123,6 +123,7 @@
 ## 🔗 Связанные проекты
 
 - **[1C ZUP VoceChat Integration](https://github.com/VladimirProgrammist1C/1c-zup-vocechat-integration)** — расширение для интеграции ЗУП с мессенджером VoceChat.
+- **[Grafinya Monitoring Stack](https://github.com/VladimirProgrammist1C/grafinya-monitoring-stack)** — импортозамещённый контур мониторинга (Графиня + Victoria Metrics), параллельный стек.
 
 ## 🛠️ Технологии
 
